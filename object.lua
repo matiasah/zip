@@ -75,19 +75,16 @@ end
 
 function ZipOBJ:ReadBits(Bits)
 	local BitArray = {}
-	local Bytes = math.ceil(Bits / 8)
-	for i = 1, Bytes do
+	for i = 1, math.ceil(Bits / 8) do
 		local Byte = self:ReadByte()
 		local Bit = 128
-		for i = 1, math.min(Bits, 8) do
+		for b = 8, 1, -1 do
+			BitArray[(i - 1) * 8 + b] = Byte >= Bit
 			if Byte >= Bit then
-				BitArray[#BitArray + 1] = true
 				Byte = Byte - Bit
-			else
-				BitArray[#BitArray + 1] = false
 			end
+			Bit = Bit / 2
 		end
-		Bits = Bits - 8
 	end
 	return BitArray
 end

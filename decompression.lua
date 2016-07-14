@@ -8,10 +8,10 @@ zip.Decompressor[0] = function (self)
 		self.Out:close()
 	end
 	
-	self.Handle:seek(0)
+	self.Handle:seek("set", 0)
 	self.Out = io.tmpfile()
 	self.Out:write(self.Handle:read("*a"))
-	return true
+	return self.Out
 end
 
 zip.Decompressor[8] = function (self)
@@ -21,15 +21,16 @@ zip.Decompressor[8] = function (self)
 	end
 	
 	self.Out = nil
-	self.Handle:seek(0)
+	self.Handle:seek("set", 0)
 	
 	local Content = self.Handle:read("*a")
-	local Success, Decompress = pcall(love.math.decompress, Content)
+	local Success, Decompress = pcall(love.math.decompress, Content, "zlib")
 	if Success then
 		self.Out = io.tmpfile()
 		self.Out:write(Decompress)
+		return self.Out
 	end
-	return Success
+	return false
 end
 
 --[[

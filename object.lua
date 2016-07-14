@@ -9,6 +9,22 @@ function zip.CreateReader(Handle)
 	return setmetatable({Handle = Handle}, ZipOBJMT)
 end
 
+function ZipOBJ:GetFolderItems(Folder)
+	if #Folder == 0 or Folder == "/" then
+		return self.Folder
+	end
+	
+	local SubFolder = self.Folder
+	for Name in Folder:gmatch("([^/]+)") do
+		if SubFolder[Name] then
+			SubFolder = SubFolder[Name]
+		else
+			return {}
+		end
+	end
+	return SubFolder
+end
+
 function ZipOBJ:ReadSignatures()
 	self.Folder = {}
 	

@@ -1,90 +1,33 @@
-local zip = ...
-local ZipOBJ = {Type = "Object"}
-local ZipOBJMT = {__index = ZipOBJ}
+module("zip.Object", package.seeall)
 
-zip.Reader = {}
-zip.ZipOBJ = ZipOBJ
+Object = {}
+Object.__index = Object
+Object.__type = "Object"
 
-function zip.CreateReader(Handle)
-	return setmetatable({Handle = Handle}, ZipOBJMT)
-end
-
-function ZipOBJ:GetFolderItems(Folder)
-	if #Folder == 0 or Folder == "/" then
-		return self.Folder
-	end
+function Object:typeOf(Type)
 	
-	local SubFolder = self.Folder
-	for Name in Folder:gmatch("([^/]+)") do
-		if SubFolder[Name] then
-			SubFolder = SubFolder[Name]
-		else
-			return {}
-		end
-	end
-	return SubFolder
-end
-
-function ZipOBJ:ReadSignatures()
-	self.Folder = {}
+	local Metatable = getmetatable(self)
 	
-	while self:ReadAvail() >= 4 do
-		local Signature = self:ReadInt()
-		local Function = zip.Reader[Signature]
-		if Function then
-			local Object = Function(self)
+	while Metatable do
+		
+		if Metatable == Type or Metatable.__type == Type then
 			
-			if Object.Type == "File" then
-				-- A file object
-				if not Object.Folder then
-					-- Folders are considered file objects too
-					
-					local SubFolder = self.Folder
-					for _, FolderName in pairs(Object.Folders) do
-						if not SubFolder[FolderName] then
-							SubFolder[FolderName] = {}
-						end
-						SubFolder = SubFolder[FolderName]
-					end
-					SubFolder[Object.Name] = Object
-				end
-			end
+			return true
+			
 		end
+		
+		Metatable = getmetatable(Metatable)
+		
 	end
+	
+	return false
+	
 end
 
-function ZipOBJ:ReadAvail()
-	return self.Handle:getSize() - self.Handle:tell()
+function Object:type()
+	
+	return self.__type
+	
 end
 
-function ZipOBJ:ReadString(Length)
-	return self.Handle:read(Length)
-end
-
-function ZipOBJ:ReadByte()
-	return self.Handle:read(1):byte()
-end
-
-function ZipOBJ:ReadShort()
-	return self:ReadByte() + self:ReadByte() * 256
-end
-
-function ZipOBJ:ReadInt()
-	return self:ReadByte() + self:ReadByte() * 256 + self:ReadByte() * 256 * 256 + self:ReadByte() * 256 * 256 * 256
-end
-
-function ZipOBJ:ReadBits(Bits)
-	local BitArray = {}
-	for i = 1, math.ceil(Bits / 8) do
-		local Byte = self:ReadByte()
-		local Bit = 128
-		for b = 8, 1, -1 do
-			BitArray[(i - 1) * 8 + b] = Byte >= Bit
-			if Byte >= Bit then
-				Byte = Byte - Bit
-			end
-			Bit = Bit / 2
-		end
-	end
-	return BitArray
-end
+return Object

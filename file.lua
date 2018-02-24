@@ -1,84 +1,260 @@
-local zip = ...
+module("zip.File", package.seeall)
 
-local ZipFile = {Type = "File"}
-local ZipFileMT = {__index = ZipFile}
+Object = require("zip.Object")
+Decompressors = require("zip.Decompressors")
 
-function ZipFileMT:__tostring()
-	return "Zip "..tostring(self.Handle)
+File = setmetatable( {}, Object )
+File.__index = File
+File.__type = "File"
+
+function File:new()
+	
+	local self = setmetatable( {}, File )
+	
+	return self
+	
 end
 
-zip.Reader[0x04034b50] = function (self)
-	local File = setmetatable({}, ZipFileMT)
+function File:__tostring()
 	
-	File.Version = self:ReadShort()
-	File.BitFlag = self:ReadBits(16)
+	return "File (zip): " .. self:GetPath()
 	
-	--[[
-		General purpose bit flag:
-		Bit 00: encrypted file
-		Bit 01: compression option 
-		Bit 02: compression option 
-		Bit 03: data descriptor
-		Bit 04: enhanced deflation
-		Bit 05: compressed patched data
-		Bit 06: strong encryption
-		Bit 07-10: unused
-		Bit 11: language encoding
-		Bit 12: reserved
-		Bit 13: mask header values
-		Bit 14-15: reserved
-	]]
-	
-	File.CompressionMethod = self:ReadShort()
-	File.LastModificationTime = self:ReadShort()
-	File.LastModificationDate = self:ReadShort()
-	--[[
-		File modification time	stored in standard MS-DOS format:
-		Bits 00-04: seconds divided by 2 
-		Bits 05-10: minute
-		Bits 11-15: hour
-		File modification date	stored in standard MS-DOS format:
-		Bits 00-04: day
-		Bits 05-08: month
-		Bits 09-15: years from 1980
-	]]
-	
-	-- value computed over file data by CRC-32 algorithm with 'magic number' 0xdebb20e3 (little endian)
-	File.CRC32 = self:ReadInt()
-	File.CompressedSize = self:ReadInt()
-	File.UncompressedSize = self:ReadInt()
-	File.PathLength = self:ReadShort()
-	File.ExtraFieldLength = self:ReadShort()
-	
-	File.Path = self:ReadString(File.PathLength)
-	File.ExtraField = self:ReadString(File.ExtraFieldLength)
-	
-	File.Folders = {}
-	for String in File.Path:gmatch("([^/]+)") do
-		table.insert(File.Folders, String)
-	end
-	
-	if File.Path:sub(-1, -1) == "/" then
-		File.Folder = true
-		File.Name = ""
-		File.Source = File.Path
-	else
-		local Content = self:ReadString(File.CompressedSize)
-		File.Handle = io.tmpfile()
-		File.Handle:write(Content)
-		
-		File.Name = File.Folders[#File.Folders]
-		File.Folders[#File.Folders] = nil
-		File.Source = table.concat(File.Folders, "/").."/"
-	end
-
-	return File
 end
 
-function ZipFile:Decompress()
-	local Method = zip.Decompressor[self.CompressionMethod]
+function File:SetDirectory(Directory)
+	
+	self.Directory = Directory
+	
+end
+
+function File:GetDirectory()
+	
+	return self.Directory
+	
+end
+
+function File:SetVersion(Version)
+	
+	self.Version = Version
+	
+end
+
+function File:GetVersion()
+	
+	return self.Version
+	
+end
+
+function File:SetVersionNeeded(VersionNeeded)
+	
+	self.VersionNeeded = VersionNeeded
+	
+end
+
+function File:GetVersionNeeded()
+	
+	return self.VersionNeeded
+	
+end
+
+function File:SetBitFlags(BitFlags)
+	
+	self.BitFlags = BitFlags
+	
+end
+
+function File:SetCompressionMethod(CompressionMethod)
+	
+	self.CompressionMethod = CompressionMethod
+	
+end
+
+function File:SetLastModificationTime(LastModificationTime)
+	
+	self.LastModificationTime = LastModificationTime
+	
+end
+
+function File:GetLastModificationTime()
+	
+	return self.LastModificationTime
+	
+end
+
+function File:SetLastModificationDate(LastModificationDate)
+	
+	self.LastModificationDate = LastModificationDate
+	
+end
+
+function File:GetLastModificationDate()
+	
+	return self.LastModificationDate
+	
+end
+
+function File:SetCRC32(CRC32)
+	
+	self.CRC32 = CRC32
+	
+end
+
+function File:GetCRC32()
+	
+	return self.CRC32
+	
+end
+
+function File:SetCompressedSize(CompressedSize)
+	
+	self.CompressedSize = CompressedSize
+	
+end
+
+function File:GetCompressedSize()
+	
+	return self.CompressedSize
+	
+end
+
+function File:SetUncompressedSize(UncompressedSize)
+	
+	self.UncompressedSize = UncompressedSize
+	
+end
+
+function File:GetUncompressedSize()
+	
+	return self.UncompressedSize
+	
+end
+
+function File:SetDiskNumber(DiskNumber)
+	
+	self.DiskNumber = DiskNumber
+	
+end
+
+function File:GetDiskNumber()
+	
+	return self.DiskNumber
+	
+end
+
+function File:SetInternalAttributes(InternalAttributes)
+	
+	self.InternalAttributes = InternalAttributes
+	
+end
+
+function File:GetInternalAttributes()
+	
+	return self.InternalAttributes
+	
+end
+
+function File:SetExternalAttributes(ExternalAttributes)
+	
+	self.ExternalAttributes = ExternalAttributes
+	
+end
+
+function File:GetExternalAttributes()
+	
+	return self.ExternalAttributes
+	
+end
+
+function File:SetRelativeOffset(RelativeOffset)
+	
+	self.RelativeOffset = RelativeOffset
+	
+end
+
+function File:GetRelativeOffset()
+	
+	return self.RelativeOffset
+	
+end
+
+function File:SetPath(Path)
+	
+	self.Path = Path
+	
+end
+
+function File:GetPath()
+	
+	return self.Path
+	
+end
+
+function File:SetName(Name)
+	
+	self.Name = Name
+	
+end
+
+function File:GetName()
+	
+	return self.Name
+	
+end
+
+function File:GetSource()
+	
+	return table.concat(self.Folders, "/")
+	
+end
+
+function File:SetExtraField(ExtraField)
+	
+	self.ExtraField = ExtraField
+	
+end
+
+function File:GetExtraField()
+	
+	return self.ExtraField
+	
+end
+
+function File:SetComment(Comment)
+	
+	self.Comment = Comment
+	
+end
+
+function File:GetComment()
+	
+	return self.Comment
+	
+end
+
+function File:SetFolders(Folders)
+	
+	self.Folders = Folders
+	
+end
+
+function File:GetFolders()
+	
+	return self.Folders
+	
+end
+
+function File:Decompress()
+	
+	local Method = Decompressors[self.CompressionMethod]
+	
 	if Method then
+		
 		return Method(self)
+		
 	end
+	
 	return false
+	
 end
+
+return File

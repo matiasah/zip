@@ -1,17 +1,57 @@
-local zip = ...
+module("zip.Data", package.seeall)
 
-local ZipData = {Type = "Data"}
-local ZipDataMT = {__index = ZipData}
+Object = require("zip.Object")
 
-zip.Reader[0x08074b50] = function (self)
-	local Data = setmetatable({}, ZipDataMT)
+Data = setmetatable( {}, Object )
+Data.__index = Data
+Data.__type = "Data"
+
+function Data:new()
 	
-	Data.CRC32 = self:ReadInt()
-	Data.CompressedSize = self:ReadInt()
-	Data.UncompressedSize = self:ReadInt()
+	return setmetatable( {}, Data )
 	
-	Data.Handle = io.tmpfile()
-	Data.Handle:write(self:ReadString(Data.CompressedSize))
-	
-	return Data
 end
+
+function Data:__tostring()
+	
+	return "Data (zip)"
+	
+end
+
+function Data:SetCRC32(CRC32)
+	
+	self.CRC32 = CRC32
+	
+end
+
+function Data:GetCRC32()
+	
+	return self.CRC32
+	
+end
+
+function Data:SetCompressedSize(CompressedSize)
+	
+	self.CompressedSize = CompressedSize
+	
+end
+
+function Data:GetCompressedSize()
+	
+	return self.CompressedSize
+	
+end
+
+function Data:SetUncompressedSize(UncompressedSize)
+	
+	self.UncompressedSize = UncompressedSize
+	
+end
+
+function Data:GetUncompressedSize()
+	
+	return self.UncompressedSize
+	
+end
+
+return Data

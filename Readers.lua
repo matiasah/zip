@@ -1,18 +1,21 @@
 module("zip.Readers", package.seeall)
 
-Object = require("zip.Object")
-File = require("zip.File")
-EndOfDir = require("zip.EndOfDir")
-Data = require("zip.Data")
+Object			= require("zip.Object")
+CentralFile		= require("zip.CentralFile")
+Data				= require("zip.Data")
+EndOfDir			= require("zip.EndOfDir")
+File				= require("zip.File")
 
 Readers = setmetatable( {}, Object )
 Readers.__index = Readers
 Readers.__type = "Readers"
 
+-- Central directory file header
 Readers[0x02014b50] = function (self)
 	
-	local newFile = File:new()
+	local newFile = CentralFile:new()
 	
+	newFile:SetReader(self)
 	newFile:SetVersion( self:ReadShort() )
 	--[[
 		0 - MS-DOS and OS/2 (FAT / VFAT / FAT32 file systems)
@@ -99,24 +102,24 @@ Readers[0x02014b50] = function (self)
 	
 	local Folders = {}
 	
-	for String in newFile.Path:gmatch("([^/]+)") do
+	for String in newFile:GetPath():gmatch("([^/]+)") do
 		
 		table.insert(Folders, String)
 		
 	end
+	
+	local Name = table.remove(Folders, #Folders)
 	
 	newFile:SetFolders( Folders )
 	
 	if newFile.Path:sub(-1, -1) == "/" then
 		
 		newFile:SetDirectory( true )
-		newFile:SetName( "" )
+		newFile:SetName( Name )
 		
 	else
 		
-		newFile:SetName( Folders[ #Folders ] )
-		
-		Folders[ #Folders ] = nil
+		newFile:SetName( Name )
 		
 	end
 	
@@ -124,11 +127,13 @@ Readers[0x02014b50] = function (self)
 	
 end
 
+-- Local file header
 Readers[0x04034b50] = function (self)
 	
 	local newFile = File:new()
 	
-	newFile:SetVersion( self:ReadShort() )
+	newFile:SetReader(self)
+	newFile:SetVersionNeeded( self:ReadShort() )
 	newFile:SetBitFlags( self:ReadBits(16) )
 	
 	--[[
@@ -170,28 +175,29 @@ Readers[0x04034b50] = function (self)
 	local ExtraFieldLength = self:ReadShort()
 	
 	newFile:SetPath( self:ReadString(PathLength) )
+	newFile:SetCompressedData( self:ReadString( newFile:GetCompressedSize() ) )
 	newFile:SetExtraField( self:ReadString(ExtraFieldLength) )
 	
 	local Folders = {}
 	
-	for String in newFile.Path:gmatch("([^/]+)") do
+	for String in newFile:GetPath():gmatch("([^/]+)") do
 		
 		table.insert(Folders, String)
 		
 	end
+	
+	local Name = table.remove(Folders, #Folders)
 	
 	newFile:SetFolders( Folders )
 	
 	if newFile.Path:sub(-1, -1) == "/" then
 		
 		newFile:SetDirectory( true )
-		newFile:SetName( "" )
+		newFile:SetName( Name )
 		
 	else
 		
-		newFile:SetName( Folders[ #Folders ] )
-		
-		Folders[ #Folders ] = nil
+		newFile:SetName( Name )
 		
 	end
 
@@ -203,32 +209,33 @@ Readers[0x08074b50] = function (self)
 	
 	local Data = Data:new()
 	
+	Data:SetReader(self)
 	Data:SetCRC32( self:ReadInt() )
 	Data:SetCompressedSize( self:ReadInt() )
 	Data:SetUncompressedSize( self:ReadInt() )
-	
-	Data.Handle = io.tmpfile()
-	Data.Handle:write(self:ReadString(Data.CompressedSize))
+	Data:SetRelativeOffset( self:Tell() )
 	
 	return Data
 	
 end
 
+-- End of central directory record (EOCD)
 Readers[0x06054b50] = function (self)
 	
-	local Dir = EndOfDir:new()
+	local newEOD = EndOfDir:new()
 	
-	Dir:SetDiskNumber( self:ReadShort() )
-	Dir:SetDiskStart( self:ReadShort() )
-	Dir:SetDiskRecord( self:ReadShort() )
-	Dir:SetDiskTotal( self:ReadShort() )
-	Dir:SetSize( self:ReadInt() )
-	Dir:SetRelativeOffset( self:ReadInt() )
+	newEOD:SetReader(self)
+	newEOD:SetDiskNumber( self:ReadShort() )
+	newEOD:SetDiskStart( self:ReadShort() )
+	newEOD:SetDiskRecord( self:ReadShort() )
+	newEOD:SetDiskTotal( self:ReadShort() )
+	newEOD:SetSize( self:ReadInt() )
+	newEOD:SetRelativeOffset( self:ReadInt() )
 	
 	local CommentLength = self:ReadShort()
-	Dir:SetComment( self:ReadString(CommentLength) )
+	newEOD:SetComment( self:ReadString(CommentLength) )
 	
-	return Dir
+	return newEOD
 	
 end
 

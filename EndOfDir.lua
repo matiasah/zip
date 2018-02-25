@@ -1,8 +1,8 @@
 module("zip.EndOfDir", package.seeall)
 
-Object = require("zip.Object")
+ReaderObject = require("zip.ReaderObject")
 
-EndOfDir = setmetatable( {}, Object )
+EndOfDir = setmetatable( {}, ReaderObject )
 EndOfDir.__index = EndOfDir
 EndOfDir.__type = "EndOfDir"
 
@@ -75,18 +75,6 @@ end
 function EndOfDir:GetSize()
 	
 	return self.Size
-	
-end
-
-function EndOfDir:SetRelativeOffset(RelativeOffset)
-	
-	self.RelativeOffset = RelativeOffset
-	
-end
-
-function EndOfDir:GetRelativeOffset()
-	
-	return self.RelativeOffset
 	
 end
 

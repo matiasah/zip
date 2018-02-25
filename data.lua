@@ -1,8 +1,9 @@
 module("zip.Data", package.seeall)
 
-Object = require("zip.Object")
+ReaderObject = require("zip.ReaderObject")
+Decompressors = require("zip.Decompressors")
 
-Data = setmetatable( {}, Object )
+Data = setmetatable( {}, ReaderObject )
 Data.__index = Data
 Data.__type = "Data"
 
@@ -18,6 +19,12 @@ function Data:__tostring()
 	
 end
 
+function Data:GetName()
+	
+	return self.CRC32
+	
+end
+
 function Data:SetCRC32(CRC32)
 	
 	self.CRC32 = CRC32
@@ -30,27 +37,9 @@ function Data:GetCRC32()
 	
 end
 
-function Data:SetCompressedSize(CompressedSize)
+function Data:GetData()
 	
-	self.CompressedSize = CompressedSize
-	
-end
-
-function Data:GetCompressedSize()
-	
-	return self.CompressedSize
-	
-end
-
-function Data:SetUncompressedSize(UncompressedSize)
-	
-	self.UncompressedSize = UncompressedSize
-	
-end
-
-function Data:GetUncompressedSize()
-	
-	return self.UncompressedSize
+	return Decompressors[8](self)
 	
 end
 

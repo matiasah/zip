@@ -1,5 +1,7 @@
 module("zip.Decompressors", package.seeall)
 
+zlib = require("zip.zlib")
+
 Decompressors = {}
 Decompressors.__index = Decompressors
 Decompressors.__type = "Decompressors"
@@ -7,45 +9,20 @@ Decompressors.__type = "Decompressors"
 Decompressors[0] = function (self)
 	
 	-- Decompression method 0: no compression
-	if self.Out then
-		
-		self.Out:close()
-		
-	end
 	
-	self.Handle:seek("set", 0)
-	self.Out = io.tmpfile()
-	self.Out:write(self.Handle:read("*a"))
-	self.Out:seek("set", 0)
-	
-	return self.Out
+	return love.filesystem.newFileData( self:GetCompressedData(), self:GetName() )
 	
 end
 
 Decompressors[8] = function (self)
-	-- Decompression method 8: deflate
 	
-	if self.Out then
-		
-		self.Out:close()
-		
-	end
-	
-	local Size = self.Handle:seek("end")
-	
-	self.Out = nil
-	self.Handle:seek("set", 0)
-	
-	local Content = self.Handle:read("*a")
-	local Success, Decompress = pcall(love.math.decompress, Content, "zlib")
+	-- Decompression method 0: no compression
+	local Data = self:GetCompressedData()
+	local Success, DecompressedData = pcall(zlib.inflate, Data, "", #Data, "deflate")
 	
 	if Success then
 		
-		self.Out = io.tmpfile()
-		self.Out:write(Decompress)
-		self.Out:seek("set", 0)
-		
-		return self.Out
+		return love.filesystem.newFileData( DecompressedData, self:GetName() )
 		
 	end
 	

@@ -1,23 +1,45 @@
 module("zip.File", package.seeall)
 
-Object = require("zip.Object")
+ReaderObject = require("zip.ReaderObject")
 Decompressors = require("zip.Decompressors")
 
-File = setmetatable( {}, Object )
+File = setmetatable( {}, ReaderObject )
 File.__index = File
 File.__type = "File"
 
 function File:new()
 	
-	local self = setmetatable( {}, File )
-	
-	return self
+	return setmetatable( {}, File )
 	
 end
 
 function File:__tostring()
 	
+	if self:GetDirectory() then
+		
+		return "Directory (zip): " .. self:GetPath()
+		
+	end
+	
 	return "File (zip): " .. self:GetPath()
+	
+end
+
+function File:SetCentralFile(CentralFile)
+	
+	if CentralFile:GetDirectory() ~= self:GetDirectory() then
+		return false
+	end
+	
+	self.CentralFile = CentralFile
+	
+	return true
+	
+end
+
+function File:GetCentralFile()
+	
+	return self.CentralFile
 	
 end
 
@@ -30,18 +52,6 @@ end
 function File:GetDirectory()
 	
 	return self.Directory
-	
-end
-
-function File:SetVersion(Version)
-	
-	self.Version = Version
-	
-end
-
-function File:GetVersion()
-	
-	return self.Version
 	
 end
 
@@ -105,66 +115,6 @@ function File:GetCRC32()
 	
 end
 
-function File:SetCompressedSize(CompressedSize)
-	
-	self.CompressedSize = CompressedSize
-	
-end
-
-function File:GetCompressedSize()
-	
-	return self.CompressedSize
-	
-end
-
-function File:SetUncompressedSize(UncompressedSize)
-	
-	self.UncompressedSize = UncompressedSize
-	
-end
-
-function File:GetUncompressedSize()
-	
-	return self.UncompressedSize
-	
-end
-
-function File:SetDiskNumber(DiskNumber)
-	
-	self.DiskNumber = DiskNumber
-	
-end
-
-function File:GetDiskNumber()
-	
-	return self.DiskNumber
-	
-end
-
-function File:SetInternalAttributes(InternalAttributes)
-	
-	self.InternalAttributes = InternalAttributes
-	
-end
-
-function File:GetInternalAttributes()
-	
-	return self.InternalAttributes
-	
-end
-
-function File:SetExternalAttributes(ExternalAttributes)
-	
-	self.ExternalAttributes = ExternalAttributes
-	
-end
-
-function File:GetExternalAttributes()
-	
-	return self.ExternalAttributes
-	
-end
-
 function File:SetRelativeOffset(RelativeOffset)
 	
 	self.RelativeOffset = RelativeOffset
@@ -219,18 +169,6 @@ function File:GetExtraField()
 	
 end
 
-function File:SetComment(Comment)
-	
-	self.Comment = Comment
-	
-end
-
-function File:GetComment()
-	
-	return self.Comment
-	
-end
-
 function File:SetFolders(Folders)
 	
 	self.Folders = Folders
@@ -243,17 +181,31 @@ function File:GetFolders()
 	
 end
 
-function File:Decompress()
+function File:GetData()
 	
-	local Method = Decompressors[self.CompressionMethod]
+	local Decompressor = Decompressors[self.CompressionMethod]
 	
-	if Method then
+	if Decompressor then
 		
-		return Method(self)
+		return Decompressor(self)
 		
 	end
 	
-	return false
+	return nil
+	
+end
+
+function File:Open()
+	
+	local newFileData = self:GetData()
+	
+	if newFileData then
+		
+		return love.filesystem.newFile(newFileData, "r")
+		
+	end
+	
+	return nil
 	
 end
 

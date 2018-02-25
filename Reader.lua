@@ -1,9 +1,10 @@
 module("zip.Reader", package.seeall)
 
 Object = require("zip.Object")
-Readers = require("zip.Readers")
-EndOfDir = require("zip.EndOfDir")
+CentralFile = require("zip.CentralFile")
 File = require("zip.File")
+EndOfDir = require("zip.EndOfDir")
+Readers = require("zip.Readers")
 
 Reader = setmetatable( {}, Object )
 Reader.__index = Reader
@@ -23,6 +24,8 @@ function Reader:new(Handle)
 		
 	end
 	
+	self.Object = {}
+	
 	self:ReadSignatures()
 	
 	return self
@@ -37,73 +40,74 @@ end
 
 function Reader:GetFolderItems(Folder)
 	
-	if #Folder == 0 or Folder == "/" then
+	if Folder == "/" then
 		
-		return self.Folder
+		Folder = ""
 		
 	end
 	
-	local SubFolder = self.Folder
+	local Items = {}
 	
-	for Name in Folder:gmatch("([^/]+)") do
+	for Path, Object in pairs(self.Object) do
 		
-		if SubFolder[Name] then
+		if Object:GetSource() == Folder then
 			
-			SubFolder = SubFolder[Name]
-			
-		else
-			
-			return {}
+			Items[ Object:GetName() ] = Object
 			
 		end
 		
 	end
 	
-	return SubFolder
+	return Items
 	
 end
 
 function Reader:ReadSignatures()
 	
-	self.Folder = {}
-	
 	while self:ReadAvail() >= 4 do
 		
-		local Signature = self:ReadInt()
-		local Function = Readers[Signature]
+		local Signature	= self:ReadInt()
+		local Function		= Readers[Signature]
 		
 		if Function then
 			
 			local Object = Function(self)
 			
-			if Object:typeOf(File) then
+			if Object then
 				
-				-- A file object
-				if not Object.Folder then
+				if Object:typeOf(File) then
 					
-					-- Folders are considered file objects too
-					
-					local SubFolder = self.Folder
-					
-					for _, FolderName in pairs(Object.Folders) do
+					if Object:typeOf(CentralFile) then
 						
-						if not SubFolder[FolderName] then
+						local File = self.Object[ Object:GetPath() ]
+						
+						if File then
 							
-							SubFolder[FolderName] = {}
+							if not File:SetCentralFile( Object ) then
+								-- Corrupted file
+								self.Object[ Object:GetPath() ] = nil
+								
+							end
 							
 						end
 						
-						SubFolder = SubFolder[FolderName]
+					else
+						
+						self.Object[ Object:GetPath() ] = Object
 						
 					end
 					
-					SubFolder[Object.Name] = Object
+				elseif Object:typeOf(EndOfDir) then
+					
+					break
 					
 				end
 				
-			elseif Object:typeOf(EndOfDir) then
-				
 			end
+			
+		else
+			
+			print("no reader found for signature", Signature)
 			
 		end
 		

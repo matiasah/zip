@@ -3,66 +3,35 @@ module("zip.Reader", package.seeall)
 Object = require("zip.Object")
 CentralFile = require("zip.CentralFile")
 File = require("zip.File")
-EndOfDir = require("zip.EndOfDir")
 Readers = require("zip.Readers")
 
 Reader = setmetatable( {}, Object )
 Reader.__index = Reader
 Reader.__type = "Reader"
 
-function Reader:new(Handle)
+function Reader:new(ZipFile, Handle)
 	
-	local self = setmetatable( {}, Reader)
+	local self = setmetatable( {}, Reader )
 	
 	if type(Handle) == "string" then
 		
-		self:SetHandle( love.filesystem.newFile(Handle, "r") )
+		self.Handle = love.filesystem.newFile(Handle, "r")
 		
 	else
 		
-		self:SetHandle( Handle )
+		self.Handle = Handle
 		
 	end
 	
-	self.Object = {}
-	
-	self:ReadSignatures()
+	self.ZipFile = ZipFile
 	
 	return self
 	
 end
 
-function Reader:SetHandle(Handle)
-	
-	self.Handle = Handle
-	
-end
-
-function Reader:GetFolderItems(Folder)
-	
-	if Folder == "/" then
-		
-		Folder = ""
-		
-	end
-	
-	local Items = {}
-	
-	for Path, Object in pairs(self.Object) do
-		
-		if Object:GetSource() == Folder then
-			
-			Items[ Object:GetName() ] = Object
-			
-		end
-		
-	end
-	
-	return Items
-	
-end
-
 function Reader:ReadSignatures()
+	
+	local Objects = self.ZipFile:GetObjects()
 	
 	while self:ReadAvail() >= 4 do
 		
@@ -71,21 +40,21 @@ function Reader:ReadSignatures()
 		
 		if Function then
 			
-			local Object = Function(self)
+			local Entry = Function(self)
 			
-			if Object then
+			if Entry then
 				
-				if Object:typeOf(File) then
+				if Entry:typeOf(File) then
 					
-					if Object:typeOf(CentralFile) then
+					if Entry:typeOf(CentralFile) then
 						
-						local File = self.Object[ Object:GetPath() ]
+						local File = Objects[ Entry:GetPath() ]
 						
 						if File then
 							
-							if not File:SetCentralFile( Object ) then
+							if not File:SetCentralFile( Entry ) then
 								-- Corrupted file
-								self.Object[ Object:GetPath() ] = nil
+								Objects[ Entry:GetPath() ] = nil
 								
 							end
 							
@@ -93,13 +62,9 @@ function Reader:ReadSignatures()
 						
 					else
 						
-						self.Object[ Object:GetPath() ] = Object
+						Objects[ Entry:GetPath() ] = Entry
 						
 					end
-					
-				elseif Object:typeOf(EndOfDir) then
-					
-					break
 					
 				end
 				
@@ -107,7 +72,7 @@ function Reader:ReadSignatures()
 			
 		else
 			
-			print("no reader found for signature", Signature)
+			error("No reader found for signature ".. Signature)
 			
 		end
 		
@@ -167,7 +132,7 @@ function Reader:ReadBits(Bits)
 	
 	local BitArray = {}
 	
-	for i = 1, math.ceil(Bits / 8) do
+	for i = 1, math.ceil( Bits * 0.125 ) do
 		
 		local Byte = self:ReadByte()
 		local Bit = 128

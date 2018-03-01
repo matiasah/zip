@@ -1,8 +1,8 @@
 module("zip.EndOfDir", package.seeall)
 
-ReaderObject = require("zip.ReaderObject")
+ZipEntry = require("zip.ZipEntry")
 
-EndOfDir = setmetatable( {}, ReaderObject )
+EndOfDir = setmetatable( {}, ZipEntry )
 EndOfDir.__index = EndOfDir
 EndOfDir.__type = "EndOfDir"
 

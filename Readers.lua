@@ -95,7 +95,6 @@ Readers[0x02014b50] = function (self)
 	newFile:SetInternalAttributes( self:ReadShort() )
 	newFile:SetExternalAttributes( self:ReadInt() )
 	newFile:SetRelativeOffset( self:ReadInt() )
-	
 	newFile:SetPath( self:ReadString(PathLength) )
 	newFile:SetExtraField( self:ReadString(ExtraFieldLength) )
 	newFile:SetComment( self:ReadString(CommentLength) )
@@ -175,8 +174,10 @@ Readers[0x04034b50] = function (self)
 	local ExtraFieldLength = self:ReadShort()
 	
 	newFile:SetPath( self:ReadString(PathLength) )
-	newFile:SetCompressedData( self:ReadString( newFile:GetCompressedSize() ) )
 	newFile:SetExtraField( self:ReadString(ExtraFieldLength) )
+	newFile:SetDataOffset( self:Tell() )
+	self:Seek( self:Tell() + newFile:GetCompressedSize() )
+	--newFile:SetCompressedData( self:ReadString( newFile:GetCompressedSize() ) )
 	
 	local Folders = {}
 	
@@ -213,7 +214,6 @@ Readers[0x08074b50] = function (self)
 	Data:SetCRC32( self:ReadInt() )
 	Data:SetCompressedSize( self:ReadInt() )
 	Data:SetUncompressedSize( self:ReadInt() )
-	Data:SetRelativeOffset( self:Tell() )
 	
 	return Data
 	
@@ -230,7 +230,6 @@ Readers[0x06054b50] = function (self)
 	newEOD:SetDiskRecord( self:ReadShort() )
 	newEOD:SetDiskTotal( self:ReadShort() )
 	newEOD:SetSize( self:ReadInt() )
-	newEOD:SetRelativeOffset( self:ReadInt() )
 	
 	local CommentLength = self:ReadShort()
 	newEOD:SetComment( self:ReadString(CommentLength) )

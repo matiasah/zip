@@ -10,7 +10,7 @@ Decompressors[0] = function (self)
 	
 	-- Decompression method 0: no compression
 	
-	return love.filesystem.newFileData( self:GetCompressedData(), self:GetName() )
+	return self:GetCompressedData()
 	
 end
 
@@ -22,7 +22,7 @@ Decompressors[8] = function (self)
 	
 	if Success then
 		
-		return love.filesystem.newFileData( DecompressedData, self:GetName() )
+		return DecompressedData
 		
 	end
 	

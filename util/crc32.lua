@@ -49,7 +49,7 @@ local string = require("string")
 local bit = require("bit")
 local tostring = tostring
 
-module('crc32')
+module('crc32', package.seeall)
 
 local CRC32 = {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 
@@ -168,3 +168,5 @@ function hash_s(str)
     return crc
 end
 --]]
+
+return {hash = hash}

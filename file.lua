@@ -1,12 +1,22 @@
 module("zip.File", package.seeall)
 
+crc32 = require("zip.crc32")
+
 ZipEntry = require("zip.ZipEntry")
 Decompressors = require("zip.Decompressors")
+Compressors = require("zip.Compressors")
 table = require("zip.table")
 
 File = setmetatable( {}, ZipEntry )
 File.__index = File
 File.__type = "File"
+
+File.CompressionMethod		= 8
+File.Version					= 2
+File.VersionNeeded			= 20
+File.InternalAttributes		= 0
+File.ExternalAttributes		= 0
+File.Comment					= ""
 
 function File:new()
 	
@@ -26,36 +36,6 @@ function File:__tostring()
 	
 end
 
-function File:SetCentralFile(CentralFile)
-	
-	if
-		CentralFile:GetDirectory() ~= self:GetDirectory() or
-		CentralFile:GetVersionNeeded() ~= self:GetVersionNeeded() or
-		not table.compare(CentralFile:GetBitFlags(), self:GetBitFlags()) or
-		CentralFile:GetCompressionMethod() ~= self:GetCompressionMethod() or
-		CentralFile:GetLastModificationTime() ~= self:GetLastModificationTime() or
-		CentralFile:GetLastModificationDate() ~= self:GetLastModificationDate() or
-		CentralFile:GetCRC32() ~= self:GetCRC32() or
-		CentralFile:GetName() ~= self:GetName() or
-		CentralFile:GetPath() ~= self:GetPath()
-		then
-		
-		return false
-		
-	end
-	
-	self.CentralFile = CentralFile
-	
-	return true
-	
-end
-
-function File:GetCentralFile()
-	
-	return self.CentralFile
-	
-end
-
 function File:SetDirectory(Directory)
 	
 	self.Directory = Directory
@@ -65,6 +45,41 @@ end
 function File:GetDirectory()
 	
 	return self.Directory
+	
+end
+
+--[[
+	0 - MS-DOS and OS/2 (FAT / VFAT / FAT32 file systems)
+	1 - Amiga 
+	2 - OpenVMS
+	3 - UNIX 
+	4 - VM/CMS
+	5 - Atari ST
+	6 - OS/2 H.P.F.S.
+	7 - Macintosh 
+	8 - Z-System
+	9 - CP/M 
+	10 - Windows NTFS
+	11 - MVS (OS/390 - Z/OS) 
+	12 - VSE
+	13 - Acorn Risc 
+	14 - VFAT
+	15 - alternate MVS 
+	16 - BeOS
+	17 - Tandem 
+	18 - OS/400
+	19 - OS/X (Darwin) 
+	20 - 255: unused
+]]
+function File:SetVersion(Version)
+	
+	self.Version = Version
+	
+end
+
+function File:GetVersion()
+	
+	return self.Version
 	
 end
 
@@ -194,13 +209,63 @@ function File:GetFolders()
 	
 end
 
+function File:SetInternalAttributes(InternalAttributes)
+	
+	self.InternalAttributes = InternalAttributes
+	
+end
+
+function File:GetInternalAttributes()
+	
+	return self.InternalAttributes
+	
+end
+
+function File:SetExternalAttributes(ExternalAttributes)
+	
+	self.ExternalAttributes = ExternalAttributes
+	
+end
+
+function File:GetExternalAttributes()
+	
+	return self.ExternalAttributes
+	
+end
+
+function File:SetComment(Comment)
+	
+	self.Comment = Comment
+	
+end
+
+function File:GetComment()
+	
+	return self.Comment
+	
+end
+
+function File:GetCompressedData()
+	
+	if self.CompressedFile then
+		
+		self.CompressedFile:seek("set", 0)
+		
+		return self.CompressedFile:read("*a")
+		
+	end
+	
+	return ZipEntry.GetCompressedData(self)
+	
+end
+
 function File:GetData()
 	
 	local Decompressor = Decompressors[self.CompressionMethod]
 	
 	if Decompressor then
 		
-		return Decompressor(self)
+		return Decompressor( self:GetCompressedData() )
 		
 	end
 	
@@ -211,26 +276,17 @@ end
 -- NEVER close the file obtained from this object, use the object itself if you want to read the file
 function File:GetTMPFile()
 	
-	if self.ModifiedFile then
-		
-		return self.ModifiedFile
-		
-	end
-	
 	local Data = self:GetData()
+	local Handle = io.tmpfile()
 	
 	if Data then
-		
-		local Handle = io.tmpfile()
 		
 		Handle:write(Data)
 		Handle:seek("set", 0)
 		
-		return Handle
-		
 	end
 	
-	return nil
+	return Handle
 	
 end
 
@@ -259,14 +315,31 @@ function File:close()
 		
 		if self.Modified then
 			
-			self.ModifiedFile = self.File
+			self.File:seek("set", 0)
+			local Data = self.File:read("*a")
+			local CompressedData = Compressors[self.CompressionMethod]( Data )
 			
-		else
+			if CompressedData then
+				
+				self.CompressedFile = io.tmpfile()
+				self.CompressedFile:write(CompressedData)
+				self.CompressedFile:seek("set", 0)
+				
+				self.CompressedSize = #CompressedData
+				self.UncompressedSize = #Data
+				self.CRC32 = crc32.hash(Data)
+				
+			else
+				
+				return false, "Couldn't compress data with method '" .. self.CompressionMethod .. "'"
+				
+			end
 			
-			self.File:close()
+			self.Modified = false
 			
 		end
 		
+		self.File:close()
 		self.File = nil
 		
 	end
@@ -385,11 +458,15 @@ function File:write(Data)
 	
 	if self.File then
 		
-		if self.File:write(Data) then
+		if #Data > 0 then
 			
-			self.Modified = true
-			
-			return true
+			if self.File:write(Data) then
+				
+				self.Modified = true
+				
+				return true
+				
+			end
 			
 		end
 		

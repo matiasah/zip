@@ -1,12 +1,16 @@
 module("zip.Writer", package.seeall)
 
 Object = require("zip.Object")
+Writers = require("zip.Writers")
 
 Writer = setmetatable( {}, Object )
 Writer.__index = Writer
 Writer.__type = "Writer"
 
-function Writer:new(ZipFile, Handle)
+Writer.CentralDirectorySize = 0
+Writer.CentralDirectoryStart = 0
+
+function Writer:new(DiskObj, Handle)
 	
 	local self = setmetatable( {}, Writer )
 	
@@ -20,7 +24,7 @@ function Writer:new(ZipFile, Handle)
 		
 	end
 	
-	self.ZipFile			= ZipFile
+	self.Disk				= DiskObj
 	self.BytesWritten		= 0
 	
 	return self
@@ -29,23 +33,60 @@ end
 
 function Writer:WriteSignatures()
 	
-	local Objects = self.ZipFile:GetObjects()
+	local Entries = self.Disk:GetEntries()
 	
-	for Path, Object in pairs(Objects) do
+	for Path, Entry in pairs(Entries) do
 		
 		-- Write local header
+		Writers[0x04034b50](self, Entry)
 		
 	end
 	
-	for Path, Object in pairs(Objects) do
+	self:SetCentralDirectoryStart( self:Tell() )
+	
+	for Path, Entry in pairs(Entries) do
 		
 		-- Write central file header
+		Writers[0x02014b50](self, Entry)
 		
 	end
 	
 	-- Write end of directories
+	Writers[0x06054b50](self)
+	
+	self.Handle:close()
 	
 	return true
+	
+end
+
+function Writer:SetCentralDirectorySize(CentralDirectorySize)
+	
+	self.CentralDirectorySize = CentralDirectorySize
+	
+end
+
+function Writer:GetCentralDirectorySize()
+	
+	return self.CentralDirectorySize
+	
+end
+
+function Writer:SetCentralDirectoryStart(CentralDirectoryStart)
+	
+	self.CentralDirectoryStart = CentralDirectoryStart
+	
+end
+
+function Writer:GetCentralDirectoryStart()
+	
+	return self.CentralDirectoryStart
+	
+end
+
+function Writer:GetDisk()
+	
+	return self.Disk
 	
 end
 
@@ -103,7 +144,7 @@ function Writer:WriteBits(Bits, n)
 		
 		for j = 1, 8 do
 			
-			if Bits[ ( i - 1 ) * 8 + j ] then
+			if Bits[ ( i - 1 ) * 8 + ( j - 1 ) ] then
 				
 				Byte = Byte + n
 				
@@ -113,7 +154,7 @@ function Writer:WriteBits(Bits, n)
 			
 		end
 		
-		self:Write( Byte )
+		self:Write( string.char(Byte) )
 		
 	end
 	

@@ -10,11 +10,13 @@ package.preload["zip.crc32"]				=		assert(love.filesystem.load(Path.."/util/crc3
 package.preload["zip.table"]				=		assert(love.filesystem.load(Path.."/util/table.lua"))
 
 package.preload["zip.Object"]				=		assert(love.filesystem.load(Path.."/Object.lua"))
+package.preload["zip.Compressors"]		=		assert(love.filesystem.load(Path.."/Compressors.lua"))
 package.preload["zip.Decompressors"]	=		assert(love.filesystem.load(Path.."/Decompressors.lua"))
 package.preload["zip.Readers"]			=		assert(love.filesystem.load(Path.."/Readers.lua"))
+package.preload["zip.Writers"]			=		assert(love.filesystem.load(Path.."/Writers.lua"))
 
-package.preload["zip.CentralFile"]		=		assert(love.filesystem.load(Path.."/CentralFile.lua"))
 package.preload["zip.Data"]				=		assert(love.filesystem.load(Path.."/Data.lua"))
+package.preload["zip.Disk"]				=		assert(love.filesystem.load(Path.."/Disk.lua"))
 package.preload["zip.EndOfDir"]			=		assert(love.filesystem.load(Path.."/EndOfDir.lua"))
 package.preload["zip.File"]				=		assert(love.filesystem.load(Path.."/File.lua"))
 package.preload["zip.Reader"]				=		assert(love.filesystem.load(Path.."/Reader.lua"))

@@ -1,15 +1,15 @@
 module("zip.Reader", package.seeall)
 
-Object = require("zip.Object")
-CentralFile = require("zip.CentralFile")
-File = require("zip.File")
-Readers = require("zip.Readers")
+Object			= require("zip.Object")
+EndOfDir			= require("zip.EndOfDir")
+File				= require("zip.File")
+Readers			= require("zip.Readers")
 
 Reader = setmetatable( {}, Object )
 Reader.__index = Reader
 Reader.__type = "Reader"
 
-function Reader:new(ZipFile, Handle)
+function Reader:new(DiskObj, Handle)
 	
 	local self = setmetatable( {}, Reader )
 	
@@ -23,7 +23,7 @@ function Reader:new(ZipFile, Handle)
 		
 	end
 	
-	self.ZipFile = ZipFile
+	self.Disk = DiskObj
 	
 	return self
 	
@@ -31,7 +31,7 @@ end
 
 function Reader:ReadSignatures()
 	
-	local Objects = self.ZipFile:GetObjects()
+	local Entries = self.Disk:GetEntries()
 	
 	while self:ReadAvail() >= 4 do
 		
@@ -46,25 +46,7 @@ function Reader:ReadSignatures()
 				
 				if Entry:typeOf(File) then
 					
-					if Entry:typeOf(CentralFile) then
-						
-						local File = Objects[ Entry:GetPath() ]
-						
-						if File then
-							
-							if not File:SetCentralFile( Entry ) then
-								-- Corrupted file
-								Objects[ Entry:GetPath() ] = nil
-								
-							end
-							
-						end
-						
-					else
-						
-						Objects[ Entry:GetPath() ] = Entry
-						
-					end
+					Entries[ Entry:GetPath() ] = Entry
 					
 				end
 				
@@ -77,6 +59,12 @@ function Reader:ReadSignatures()
 		end
 		
 	end
+	
+end
+
+function Reader:GetDisk()
+	
+	return self.Disk
 	
 end
 
@@ -139,7 +127,7 @@ function Reader:ReadBits(Bits)
 		
 		for b = 8, 1, -1 do
 			
-			BitArray[(i - 1) * 8 + b] = Byte >= Bit
+			BitArray[ (i - 1) * 8 + ( b - 1 ) ] = Byte >= Bit
 			
 			if Byte >= Bit then
 				

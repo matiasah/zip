@@ -42,15 +42,15 @@ function EndOfDir:GetDiskStart()
 	
 end
 
-function EndOfDir:SetDiskRecord(DiskRecord)
+function EndOfDir:SetDiskEntries(DiskEntries)
 	
-	self.DiskRecord = DiskRecord
+	self.DiskEntries = DiskEntries
 	
 end
 
-function EndOfDir:GetDiskRecord()
+function EndOfDir:GetDiskEntries()
 	
-	return self.DiskRecord
+	return self.DiskEntries
 	
 end
 
@@ -78,9 +78,25 @@ function EndOfDir:GetSize()
 	
 end
 
+function EndOfDir:SetOffset(Offset)
+	
+	self.Offset = Offset
+	
+end
+
+function EndOfDir:GetOffset()
+	
+	return self.Offset
+	
+end
+
 function EndOfDir:SetComment(Comment)
 	
 	self.Comment = Comment
+	
+end
+
+function EndOfDir:GetComment()
 	
 end
 

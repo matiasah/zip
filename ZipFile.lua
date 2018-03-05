@@ -1,7 +1,9 @@
 module("zip.ZipFile", package.seeall)
 
-Object = require("zip.Object")
-Reader = require("zip.Reader")
+Object		= require("zip.Object")
+Reader		= require("zip.Reader")
+Disk			= require("zip.Disk")
+Writer		= require("zip.Writer")
 
 ZipFile = setmetatable( {}, Object )
 ZipFile.__index = ZipFile
@@ -11,7 +13,9 @@ function ZipFile:new()
 	
 	local self = setmetatable( {}, ZipFile)
 	
-	self.Objects = {}
+	self.Disk = {}
+	
+	self:AddDisk( Disk:new() )
 	
 	return self
 	
@@ -21,10 +25,10 @@ function ZipFile:read(Handle)
 	
 	if Handle then
 		
-		local self = ZipFile:new()
+		local self			= ZipFile:new()
+		local newReader	= Reader:new( self.Disk[1], Handle )
 		
-		self.Reader = Reader:new( self, Handle )
-		self.Reader:ReadSignatures()
+		newReader:ReadSignatures()
 		
 		return self
 		
@@ -36,7 +40,7 @@ function ZipFile:write(Handle)
 	
 	if Handle then
 		
-		local newWriter = Writer:new( self, Handle )
+		local newWriter = Writer:new( self.Disk[1], Handle )
 		
 		return newWriter:WriteSignatures()
 		
@@ -46,7 +50,7 @@ function ZipFile:write(Handle)
 	
 end
 
-function ZipFile:GetFolderItems(Folder)
+function ZipFile:GetFolderEntries(Folder)
 	
 	if Folder == "/" then
 		
@@ -54,31 +58,40 @@ function ZipFile:GetFolderItems(Folder)
 		
 	end
 	
-	local Items = {}
+	local Entries = {}
 	
-	for Path, Object in pairs(self.Objects) do
+	for Index, DiskObj in pairs(self.Disk) do
 		
-		if Object:GetSource() == Folder then
-			
-			Items[ Object:GetName() ] = Object
-			
-		end
+		DiskObj:PushFolderEntries(Entries, Folder)
 		
 	end
 	
-	return Items
+	return Entries
 	
 end
 
-function ZipFile:GetReader()
+function ZipFile:AddDisk(DiskObj)
 	
-	return self.Reader
+	local Index = #self.Disk + 1
+	
+	DiskObj:SetNumber(Index)
+	DiskObj:SetZipFile(self)
+	
+	self.Disk[Index] = DiskObj
 	
 end
 
-function ZipFile:GetObjects()
+function ZipFile:GetFirstDisk()
 	
-	return self.Objects
+	local Index, DiskObj = next(self.Disk)
+	
+	return DiskObj
+	
+end
+
+function ZipFile:GetLastDisk()
+	
+	return self.Disk[#self.Disk]
 	
 end
 

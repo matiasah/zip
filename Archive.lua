@@ -1,16 +1,16 @@
-module("zip.ZipFile", package.seeall)
+module("zip.Archive", package.seeall)
 
 Object		= require("zip.Object")
 Reader		= require("zip.Reader")
 Disk			= require("zip.Disk")
 
-ZipFile = setmetatable( {}, Object )
-ZipFile.__index = ZipFile
-ZipFile.__type = "ZipFile"
+Archive = setmetatable( {}, Object )
+Archive.__index = Archive
+Archive.__type = "Archive"
 
-function ZipFile:new()
+function Archive:new()
 	
-	local self = setmetatable( {}, ZipFile)
+	local self = setmetatable( {}, Archive)
 	
 	self.Disk = {}
 	
@@ -18,11 +18,11 @@ function ZipFile:new()
 	
 end
 
-function ZipFile:read(Handle)
+function Archive:read(Handle)
 	
 	if Handle then
 		
-		local self		= ZipFile:new()
+		local self		= Archive:new()
 		local newDisk	= Disk:read(Handle)
 		
 		if newDisk then
@@ -39,7 +39,7 @@ function ZipFile:read(Handle)
 	
 end
 
-function ZipFile:write(Handle, Index)
+function Archive:write(Handle, Index)
 	
 	if Handle then
 		
@@ -67,7 +67,7 @@ function ZipFile:write(Handle, Index)
 	
 end
 
-function ZipFile:GetFolderEntries(Folder)
+function Archive:GetFolderEntries(Folder)
 	
 	local Entries = {}
 	
@@ -81,13 +81,13 @@ function ZipFile:GetFolderEntries(Folder)
 	
 end
 
-function ZipFile:GetDiskIterator()
+function Archive:GetDiskIterator()
 	
 	return pairs(self.Disk)
 	
 end
 
-function ZipFile:AddDisk(DiskObj)
+function Archive:AddDisk(DiskObj)
 	
 	local Index = #self.Disk + 1
 	
@@ -100,7 +100,7 @@ function ZipFile:AddDisk(DiskObj)
 	
 end
 
-function ZipFile:RemoveDisk(Index)
+function Archive:RemoveDisk(Index)
 	
 	for i = Index, #self.Disk do
 		
@@ -114,7 +114,7 @@ function ZipFile:RemoveDisk(Index)
 	
 end
 
-function ZipFile:GetFirstDisk()
+function Archive:GetFirstDisk()
 	
 	local Index, DiskObj = next(self.Disk)
 	
@@ -122,10 +122,10 @@ function ZipFile:GetFirstDisk()
 	
 end
 
-function ZipFile:GetLastDisk()
+function Archive:GetLastDisk()
 	
 	return self.Disk[#self.Disk]
 	
 end
 
-return ZipFile
+return Archive

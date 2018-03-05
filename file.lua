@@ -2,12 +2,12 @@ module("zip.File", package.seeall)
 
 crc32 = require("zip.crc32")
 
-ZipEntry = require("zip.ZipEntry")
+Entry = require("zip.Entry")
 Decompressors = require("zip.Decompressors")
 Compressors = require("zip.Compressors")
 table = require("zip.table")
 
-File = setmetatable( {}, ZipEntry )
+File = setmetatable( {}, Entry )
 File.__index = File
 File.__type = "File"
 
@@ -255,7 +255,7 @@ function File:GetCompressedData()
 		
 	end
 	
-	return ZipEntry.GetCompressedData(self)
+	return Entry.GetCompressedData(self)
 	
 end
 

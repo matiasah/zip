@@ -1,9 +1,9 @@
 module("zip.Data", package.seeall)
 
-ZipEntry = require("zip.ZipEntry")
+Entry = require("zip.Entry")
 Decompressors = require("zip.Decompressors")
 
-Data = setmetatable( {}, ZipEntry )
+Data = setmetatable( {}, Entry )
 Data.__index = Data
 Data.__type = "Data"
 

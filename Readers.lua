@@ -4,6 +4,7 @@ Object			= require("zip.Object")
 Data				= require("zip.Data")
 EndOfDir			= require("zip.EndOfDir")
 File				= require("zip.File")
+crc32				= require("zip.crc32")
 
 Readers = setmetatable( {}, Object )
 Readers.__index = Readers

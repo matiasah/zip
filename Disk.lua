@@ -62,6 +62,12 @@ end
 
 function Disk:PushFolderEntries(Entries, Source)
 	
+	if Source == nil then
+		
+		Source = ""
+		
+	end
+	
 	while Source:sub(1, 1) == "/" do
 		
 		Source = Source:sub(2)
@@ -100,13 +106,17 @@ end
 
 function Disk:GetEntry(Path)
 	
-	while Path:sub(1, 1) == "/" do
+	if Path then
 		
-		Path = Path:sub(2)
+		while Path:sub(1, 1) == "/" do
+			
+			Path = Path:sub(2)
+			
+		end
+		
+		return self.Entries[Path]
 		
 	end
-	
-	return self.Entries[Path]
 	
 end
 

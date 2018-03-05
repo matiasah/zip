@@ -11,13 +11,46 @@ Writers[0x02014b50] = function (self, FileObj)
 	
 	self:WriteInt( 0x02014b50 )
 	
-	-- Do not use data descriptor
 	local BitFlags	= FileObj:GetBitFlags()
 	local Disk		= self:GetDisk()
 	
 	do
 		
+		-- Not encrypted
+		BitFlags[0] = false
+		
+		-- Normal compression
+		BitFlags[1] = false
+		BitFlags[2] = false
+		
+		-- Not using data descriptor
 		BitFlags[3] = false
+		
+		-- Not using enhanced deflate
+		BitFlags[4] = false
+		
+		-- Not compressed patched data
+		BitFlags[5] = false
+		
+		-- Not using encryption
+		BitFlags[6] = false
+		
+		-- Currently unused
+		for i = 7, 10 do
+			
+			BitFlags[i] = false
+			
+		end
+		
+		-- No language encoding flag
+		BitFlags[11] = false
+		
+		-- Not used
+		BitFlags[13] = false
+		
+		-- Reserved by PKWARE
+		BitFlags[14] = false
+		BitFlags[15] = false
 		
 	end
 	
@@ -71,8 +104,42 @@ Writers[0x04034b50] = function (self, FileObj)
 	local BitFlags = FileObj:GetBitFlags()
 	
 	do
-		-- Disable the bit 3
+		
+		-- Not encrypted
+		BitFlags[0] = false
+		
+		-- Normal compression
+		BitFlags[1] = false
+		BitFlags[2] = false
+		
+		-- Not using data descriptor
 		BitFlags[3] = false
+		
+		-- Not using enhanced deflate
+		BitFlags[4] = false
+		
+		-- Not compressed patched data
+		BitFlags[5] = false
+		
+		-- Not using encryption
+		BitFlags[6] = false
+		
+		-- Currently unused
+		for i = 7, 10 do
+			
+			BitFlags[i] = false
+			
+		end
+		
+		-- No language encoding flag
+		BitFlags[11] = false
+		
+		-- Not used
+		BitFlags[13] = false
+		
+		-- Reserved by PKWARE
+		BitFlags[14] = false
+		BitFlags[15] = false
 		
 	end
 	

@@ -91,7 +91,8 @@ function Archive:AddDisk(DiskObj)
 	
 	local Index = #self.Disk + 1
 	
-	DiskObj:SetNumber(Index)
+	-- Disk number is it's index minus one
+	DiskObj:SetNumber( Index - 1 )
 	DiskObj:SetZipFile(self)
 	
 	self.Disk[Index] = DiskObj
@@ -106,7 +107,7 @@ function Archive:RemoveDisk(Index)
 		
 		local Aux = self.Disk[Index + 1]
 		
-		Aux:SetNumber( i )
+		Aux:SetNumber( i - 1 )
 		
 		self.Disk[Index] = Aux
 		

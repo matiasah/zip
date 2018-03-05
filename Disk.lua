@@ -1,6 +1,8 @@
 module("zip.Disk", package.seeall)
 
 Object = require("zip.Object")
+Reader = require("zip.Reader")
+Writer = require("zip.Writer")
 
 Disk = setmetatable( {}, Object )
 Disk.__index = Disk
@@ -19,7 +21,52 @@ function Disk:new()
 	
 end
 
+function Disk:read(Handle)
+	
+	if Handle then
+		
+		local self		= Disk:new()
+		local Reader	= Reader:new(self, Handle)
+		
+		if Reader then
+			
+			Reader:ReadSignatures()
+			
+			return self
+			
+		end
+		
+	end
+	
+	return nil
+	
+end
+
+function Disk:write(Handle)
+	
+	if Handle then
+		
+		local Writer	= Writer:new(self, Handle)
+		
+		if Writer then
+			
+			return Writer:WriteSignatures()
+			
+		end
+		
+	end
+	
+	return nil
+	
+end
+
 function Disk:PushFolderEntries(Entries, Source)
+	
+	while Source:sub(1, 1) == "/" do
+		
+		Source = Source:sub(2)
+		
+	end
 	
 	for Path, Entry in pairs(self.Entries) do
 		

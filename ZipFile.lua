@@ -3,7 +3,6 @@ module("zip.ZipFile", package.seeall)
 Object		= require("zip.Object")
 Reader		= require("zip.Reader")
 Disk			= require("zip.Disk")
-Writer		= require("zip.Writer")
 
 ZipFile = setmetatable( {}, Object )
 ZipFile.__index = ZipFile
@@ -15,8 +14,6 @@ function ZipFile:new()
 	
 	self.Disk = {}
 	
-	self:AddDisk( Disk:new() )
-	
 	return self
 	
 end
@@ -25,24 +22,44 @@ function ZipFile:read(Handle)
 	
 	if Handle then
 		
-		local self			= ZipFile:new()
-		local newReader	= Reader:new( self.Disk[1], Handle )
+		local self		= ZipFile:new()
+		local newDisk	= Disk:read(Handle)
 		
-		newReader:ReadSignatures()
-		
-		return self
+		if newDisk then
+			
+			self:AddDisk( newDisk )
+			
+			return self
+			
+		end
 		
 	end
 	
+	return nil
+	
 end
 
-function ZipFile:write(Handle)
+function ZipFile:write(Handle, Index)
 	
 	if Handle then
 		
-		local newWriter = Writer:new( self.Disk[1], Handle )
+		local DiskObj
 		
-		return newWriter:WriteSignatures()
+		if Index then
+			
+			DiskObj = self.Disk[Index]
+			
+		else
+			
+			DiskObj = self:GetFirstDisk()
+			
+		end
+		
+		if DiskObj then
+			
+			return DiskObj:write(Handle)
+			
+		end
 		
 	end
 	
@@ -51,12 +68,6 @@ function ZipFile:write(Handle)
 end
 
 function ZipFile:GetFolderEntries(Folder)
-	
-	if Folder == "/" then
-		
-		Folder = ""
-		
-	end
 	
 	local Entries = {}
 	
@@ -70,6 +81,12 @@ function ZipFile:GetFolderEntries(Folder)
 	
 end
 
+function ZipFile:GetDiskIterator()
+	
+	return pairs(self.Disk)
+	
+end
+
 function ZipFile:AddDisk(DiskObj)
 	
 	local Index = #self.Disk + 1
@@ -78,6 +95,22 @@ function ZipFile:AddDisk(DiskObj)
 	DiskObj:SetZipFile(self)
 	
 	self.Disk[Index] = DiskObj
+	
+	return Index
+	
+end
+
+function ZipFile:RemoveDisk(Index)
+	
+	for i = Index, #self.Disk do
+		
+		local Aux = self.Disk[Index + 1]
+		
+		Aux:SetNumber( i )
+		
+		self.Disk[Index] = Aux
+		
+	end
 	
 end
 

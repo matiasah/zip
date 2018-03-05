@@ -12,7 +12,7 @@ File.__index = File
 File.__type = "File"
 
 File.CompressionMethod		= 8
-File.Version					= 2
+File.Version					= 3
 File.VersionNeeded			= 20
 File.InternalAttributes		= 0
 File.ExternalAttributes		= 0

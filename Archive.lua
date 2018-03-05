@@ -123,9 +123,17 @@ function Archive:GetFirstDisk()
 	
 end
 
-function Archive:GetLastDisk()
+function Archive:GetNumberOfEntries()
 	
-	return self.Disk[#self.Disk]
+	local Entries = 0
+	
+	for Index, DiskObj in pairs(self.Disk) do
+		
+		Entries = Entries + DiskObj:GetNumberOfEntries()
+		
+	end
+	
+	return Entries
 	
 end
 

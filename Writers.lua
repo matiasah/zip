@@ -186,7 +186,7 @@ Writers[0x06054b50] = function (self)
 	self:WriteShort( Disk:GetNumber() )
 	self:WriteShort( Disk:GetZipFile():GetFirstDisk():GetNumber() )
 	self:WriteShort( Disk:GetNumberOfEntries() )
-	self:WriteShort( Disk:GetZipFile():GetLastDisk():GetNumber() )
+	self:WriteShort( Disk:GetZipFile():GetNumberOfEntries() )
 	self:WriteInt( self:GetCentralDirectorySize() )
 	self:WriteInt( self:GetCentralDirectoryStart() )
 	

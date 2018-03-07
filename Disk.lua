@@ -86,6 +86,36 @@ function Disk:PushFolderEntries(Entries, Source)
 	
 end
 
+function Disk:GetFolderEntries(Source)
+	
+	if Source == nil then
+		
+		Source = ""
+		
+	end
+	
+	while Source:sub(1, 1) == "/" do
+		
+		Source = Source:sub(2)
+		
+	end
+	
+	local Entries = {}
+	
+	for Path, Entry in pairs(self.Entries) do
+		
+		if Entry:GetSource() == Source then
+			
+			Entries[ Entry:GetName() ] = Entry
+			
+		end
+		
+	end
+	
+	return Entries
+	
+end
+
 function Disk:SetNumber(Number)
 	
 	self.Number = Number
@@ -120,6 +150,42 @@ function Disk:GetEntry(Path)
 	
 end
 
+function Disk:PutEntry(Entry)
+	
+	if Entry then
+		
+		while Entry:GetPath():sub(1, 1) == "/" do
+			
+			Entry:SetPath( Entry:GetPath():sub(2) )
+			
+		end
+		
+		self.Entries[ Entry:GetPath() ] = Entry
+		
+	end
+	
+end
+
+function Disk:RemoveEntry(Path)
+	
+	if Path then
+		
+		while Path:sub(1, 1) == "/" do
+			
+			Path = Path:sub(2)
+			
+		end
+		
+		local Entry = self.Entries[Path]
+		
+		self.Entries[Path] = nil
+		
+		return Entry
+		
+	end
+	
+end
+
 function Disk:SetComment(Comment)
 	
 	self.Comment = Comment
@@ -132,15 +198,15 @@ function Disk:GetComment()
 	
 end
 
-function Disk:SetZipFile(ZipFile)
+function Disk:SetArchive(Archive)
 	
-	self.ZipFile = ZipFile
+	self.Archive = Archive
 	
 end
 
-function Disk:GetZipFile()
+function Disk:GetArchive()
 	
-	return self.ZipFile
+	return self.Archive
 	
 end
 

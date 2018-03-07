@@ -6,57 +6,60 @@ Writers = setmetatable( {}, Object )
 Writers.__index = Writers
 Writers.__type = "Writers"
 
+function Writers:SetBitFlags(FileObj)
+	
+	local BitFlags = FileObj:GetBitFlags()
+	
+	-- Not encrypted
+	BitFlags[0] = false
+	
+	-- Normal compression
+	BitFlags[1] = false
+	BitFlags[2] = false
+	
+	-- Not using data descriptor
+	BitFlags[3] = false
+	
+	-- Not using enhanced deflate
+	BitFlags[4] = false
+	
+	-- Not compressed patched data
+	BitFlags[5] = false
+	
+	-- Not using encryption
+	BitFlags[6] = false
+	
+	-- Currently unused
+	for i = 7, 10 do
+		
+		BitFlags[i] = false
+		
+	end
+	
+	-- No language encoding flag
+	BitFlags[11] = false
+	
+	-- Not used
+	BitFlags[13] = false
+	
+	-- Reserved by PKWARE
+	BitFlags[14] = false
+	BitFlags[15] = false
+	
+end
+
 -- Central file header (CentralFile)
 Writers[0x02014b50] = function (self, FileObj)
 	
 	self:WriteInt( 0x02014b50 )
 	
-	local BitFlags	= FileObj:GetBitFlags()
-	local Disk		= self:GetDisk()
+	local Disk = self:GetDisk()
 	
-	do
-		
-		-- Not encrypted
-		BitFlags[0] = false
-		
-		-- Normal compression
-		BitFlags[1] = false
-		BitFlags[2] = false
-		
-		-- Not using data descriptor
-		BitFlags[3] = false
-		
-		-- Not using enhanced deflate
-		BitFlags[4] = false
-		
-		-- Not compressed patched data
-		BitFlags[5] = false
-		
-		-- Not using encryption
-		BitFlags[6] = false
-		
-		-- Currently unused
-		for i = 7, 10 do
-			
-			BitFlags[i] = false
-			
-		end
-		
-		-- No language encoding flag
-		BitFlags[11] = false
-		
-		-- Not used
-		BitFlags[13] = false
-		
-		-- Reserved by PKWARE
-		BitFlags[14] = false
-		BitFlags[15] = false
-		
-	end
+	Writers:SetBitFlags( FileObj )
 	
 	self:WriteShort( FileObj:GetVersion() )
 	self:WriteShort( FileObj:GetVersionNeeded() )
-	self:WriteBits( BitFlags, 16 )
+	self:WriteBits( FileObj:GetBitFlags(), 16 )
 	
 	self:WriteShort( FileObj:GetCompressionMethod() )
 	self:WriteShort( FileObj:GetLastModificationTime() )
@@ -100,51 +103,10 @@ Writers[0x04034b50] = function (self, FileObj)
 	
 	self:WriteInt( 0x04034b50 )
 	
-	-- Do not use data descriptor
-	local BitFlags = FileObj:GetBitFlags()
-	
-	do
-		
-		-- Not encrypted
-		BitFlags[0] = false
-		
-		-- Normal compression
-		BitFlags[1] = false
-		BitFlags[2] = false
-		
-		-- Not using data descriptor
-		BitFlags[3] = false
-		
-		-- Not using enhanced deflate
-		BitFlags[4] = false
-		
-		-- Not compressed patched data
-		BitFlags[5] = false
-		
-		-- Not using encryption
-		BitFlags[6] = false
-		
-		-- Currently unused
-		for i = 7, 10 do
-			
-			BitFlags[i] = false
-			
-		end
-		
-		-- No language encoding flag
-		BitFlags[11] = false
-		
-		-- Not used
-		BitFlags[13] = false
-		
-		-- Reserved by PKWARE
-		BitFlags[14] = false
-		BitFlags[15] = false
-		
-	end
+	Writers:SetBitFlags(FileObj)
 	
 	self:WriteShort( FileObj:GetVersionNeeded() )
-	self:WriteBits( BitFlags, 16 )
+	self:WriteBits( FileObj:GetBitFlags(), 16 )
 	
 	self:WriteShort( FileObj:GetCompressionMethod() )
 	self:WriteShort( FileObj:GetLastModificationTime() )
@@ -181,12 +143,13 @@ end
 Writers[0x06054b50] = function (self)
 	
 	local Disk = self:GetDisk()
+	local Archive = Disk:GetArchive()
 	
 	self:WriteInt( 0x06054b50 )
 	self:WriteShort( Disk:GetNumber() )
-	self:WriteShort( Disk:GetZipFile():GetFirstDisk():GetNumber() )
+	self:WriteShort( Archive:GetFirstDisk():GetNumber() )
 	self:WriteShort( Disk:GetNumberOfEntries() )
-	self:WriteShort( Disk:GetZipFile():GetNumberOfEntries() )
+	self:WriteShort( Archive:GetNumberOfEntries() )
 	self:WriteInt( self:GetCentralDirectorySize() )
 	self:WriteInt( self:GetCentralDirectoryStart() )
 	

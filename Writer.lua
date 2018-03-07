@@ -7,8 +7,9 @@ Writer = setmetatable( {}, Object )
 Writer.__index = Writer
 Writer.__type = "Writer"
 
-Writer.CentralDirectorySize = 0
-Writer.CentralDirectoryStart = 0
+Writer.BytesWritten				= 0
+Writer.CentralDirectorySize	= 0
+Writer.CentralDirectoryStart	= 0
 
 function Writer:new(DiskObj, Handle)
 	
@@ -24,8 +25,7 @@ function Writer:new(DiskObj, Handle)
 		
 	end
 	
-	self.Disk				= DiskObj
-	self.BytesWritten		= 0
+	self.Disk = DiskObj
 	
 	return self
 	
@@ -98,14 +98,14 @@ end
 
 function Writer:Write(String)
 	
-	self.Handle:write(String)
+	self.Handle:write( String )
 	self.BytesWritten = self.BytesWritten + #String
 	
 end
 
 function Writer:WriteString(String)
 	
-	self:Write(String)
+	self:Write( String )
 	
 end
 
@@ -137,6 +137,8 @@ end
 
 function Writer:WriteBits(Bits, n)
 	
+	local BinaryString = ""
+	
 	for i = 1, math.ceil( n * 0.125 ) do
 		
 		local Byte	= 0
@@ -154,9 +156,11 @@ function Writer:WriteBits(Bits, n)
 			
 		end
 		
-		self:Write( string.char(Byte) )
+		BinaryString = BinaryString .. string.char(Byte)
 		
 	end
+	
+	self:Write( BinaryString )
 	
 end
 

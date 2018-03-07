@@ -105,16 +105,6 @@ Readers[0x04034b50] = function (self)
 		newFile:SetCompressionMethod( self:ReadShort() )
 		newFile:SetLastModificationTime( self:ReadShort() )
 		newFile:SetLastModificationDate( self:ReadShort() )
-		--[[
-			File modification time	stored in standard MS-DOS format:
-			Bits 00-04: seconds divided by 2 
-			Bits 05-10: minute
-			Bits 11-15: hour
-			File modification date	stored in standard MS-DOS format:
-			Bits 00-04: day
-			Bits 05-08: month
-			Bits 09-15: years from 1980
-		]]
 		
 		-- value computed over file data by CRC-32 algorithm with 'magic number' 0xdebb20e3 (little endian)
 		newFile:SetCRC32( self:ReadInt() )
@@ -152,6 +142,22 @@ Readers[0x04034b50] = function (self)
 			newFile:SetName( Name )
 			
 		end
+		
+	end
+	
+	-- Bit 3 is set, read data descriptor
+	if newFile:GetBitFlags()[3] then
+		
+		-- Read data descriptor signature
+		if self:ReadInt() ~= 0x08074b50 then
+			
+			-- If the signature is not present, return 4 bytes back
+			self:Seek( self:Tell() - 4 )
+			
+		end
+		
+		-- What to do with the data descriptor??
+		Readers[0x08074b50](self)
 		
 	end
 

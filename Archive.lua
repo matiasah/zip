@@ -18,6 +18,7 @@ function Archive:new()
 	
 end
 
+-- Static method, use Archive:read("file") (not self:read("file"))
 function Archive:read(Handle)
 	
 	if Handle then
@@ -67,6 +68,26 @@ function Archive:write(Handle, Index)
 	
 end
 
+function Archive:load(Handle)
+	
+	if Handle then
+		
+		local newDisk	= Disk:read(Handle)
+		
+		if newDisk then
+			
+			self:AddDisk( newDisk )
+			
+			return newDisk
+			
+		end
+		
+	end
+	
+	return nil
+	
+end
+
 function Archive:GetFolderEntries(Folder)
 	
 	local Entries = {}
@@ -78,6 +99,24 @@ function Archive:GetFolderEntries(Folder)
 	end
 	
 	return Entries
+	
+end
+
+function Archive:GetEntry(Path)
+	
+	for Index, DiskObj in pairs(self.Disk) do
+		
+		local Entry = DiskObj:GetEntry(Path)
+		
+		if Entry then
+			
+			return Entry
+			
+		end
+		
+	end
+	
+	return nil
 	
 end
 
@@ -93,7 +132,7 @@ function Archive:AddDisk(DiskObj)
 	
 	-- Disk number is it's index minus one
 	DiskObj:SetNumber( Index - 1 )
-	DiskObj:SetZipFile(self)
+	DiskObj:SetArchive(self)
 	
 	self.Disk[Index] = DiskObj
 	

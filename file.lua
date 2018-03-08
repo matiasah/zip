@@ -20,13 +20,18 @@ File.InternalAttributes		= 0
 File.ExternalAttributes		= 0
 File.CRC32						= 0
 File.Comment					= ""
-File.Folders					= {}
 File.CompressedSize			= 0
 File.UncompressedSize		= 0
+File.ExtraField				= ""
 
 function File:new()
 	
-	return setmetatable( {}, File )
+	local self = setmetatable( {}, File )
+	
+	self.BitFlags = {}
+	self.Folders = {}
+	
+	return self
 	
 end
 

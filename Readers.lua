@@ -132,26 +132,11 @@ Readers[0x04034b50] = function (self)
 		
 		self:Seek( self:Tell() + newFile:GetCompressedSize() )
 		
-		local Folders = {}
-		
-		for String in newFile:GetPath():gmatch("([^/]+)") do
-			
-			table.insert(Folders, String)
-			
-		end
-		
-		local Name = table.remove(Folders, #Folders)
-		
-		newFile:SetFolders( Folders )
+		local Name = newFile:GetName()
 		
 		if newFile.Path:sub(-1, -1) == "/" then
 			
 			newFile:SetDirectory( true )
-			newFile:SetName( Name )
-			
-		else
-			
-			newFile:SetName( Name )
 			
 		end
 		

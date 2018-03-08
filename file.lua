@@ -19,6 +19,7 @@ File.VersionNeeded			= 20
 File.InternalAttributes		= 0
 File.ExternalAttributes		= 0
 File.Comment					= ""
+File.Folders					= {}
 
 function File:new()
 	
@@ -290,18 +291,22 @@ end
 function File:SetPath(Path)
 	
 	self.Path = Path
+	self.Folders = {}
+	
+	for String in self.Path:gmatch("([^/]+)") do
+		
+		table.insert(self.Folders, String)
+		
+	end
+	
+	self.Name							= self.Folders[#self.Folders]
+	self.Folders[#self.Folders]	= nil
 	
 end
 
 function File:GetPath()
 	
 	return self.Path
-	
-end
-
-function File:SetName(Name)
-	
-	self.Name = Name
 	
 end
 
@@ -326,12 +331,6 @@ end
 function File:GetExtraField()
 	
 	return self.ExtraField
-	
-end
-
-function File:SetFolders(Folders)
-	
-	self.Folders = Folders
 	
 end
 

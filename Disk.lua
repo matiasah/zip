@@ -24,7 +24,7 @@ end
 function Disk:read(Handle)
 	
 	if Handle then
-		
+		-- Reader's handle doesn't get automatically closed
 		local self		= Disk:new()
 		local Reader	= Reader:new(self, Handle)
 		
@@ -131,6 +131,12 @@ end
 function Disk:GetEntries()
 	
 	return self.Entries
+	
+end
+
+function Disk:GetEntryIterator()
+	
+	return pairs(self.Entries)
 	
 end
 

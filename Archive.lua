@@ -128,10 +128,16 @@ end
 
 function Archive:AddDisk(DiskObj)
 	
-	local Index = #self.Disk + 1
+	local Index = 0
+	
+	if self.Disk[Index] then
+		
+		Index = #self.Disk + 1
+		
+	end
 	
 	-- Disk number is it's index minus one
-	DiskObj:SetNumber( Index - 1 )
+	DiskObj:SetNumber( Index )
 	DiskObj:SetArchive(self)
 	
 	self.Disk[Index] = DiskObj
@@ -142,15 +148,27 @@ end
 
 function Archive:RemoveDisk(Index)
 	
+	local Disk = self.Disk[Index]
+	
 	for i = Index, #self.Disk do
 		
-		local Aux = self.Disk[Index + 1]
+		local Aux = self.Disk[i + 1]
 		
-		Aux:SetNumber( i - 1 )
+		if Aux then
+			
+			Aux:SetNumber( i )
+			
+		end
 		
-		self.Disk[Index] = Aux
+		self.Disk[i] = Aux
 		
 	end
+	
+	return Disk
+	
+end
+
+function Archive:GetDisk(Index)
 	
 end
 

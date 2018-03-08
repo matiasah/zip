@@ -1,8 +1,9 @@
 module("zip.Disk", package.seeall)
 
-Object = require("zip.Object")
-Reader = require("zip.Reader")
-Writer = require("zip.Writer")
+Object	= require("zip.Object")
+Reader	= require("zip.Reader")
+Writer	= require("zip.Writer")
+File		= require("zip.File")
 
 Disk = setmetatable( {}, Object )
 Disk.__index = Disk
@@ -167,6 +168,24 @@ function Disk:PutEntry(Entry)
 		end
 		
 		self.Entries[ Entry:GetPath() ] = Entry
+		
+		local SourceFolder = Entry:GetSource()
+		
+		if #SourceFolder > 0 then
+			
+			if not self.Entries[ SourceFolder ] then
+				-- Folder does not exist, make one
+				local newDir = File:new()
+				
+				newDir:SetPath( SourceFolder )
+				newDir:SetDirectory( true )
+				newDir:UpdateModificationTime( os.time() )
+				
+				self:PutEntry( newDir )
+				
+			end
+			
+		end
 		
 	end
 	

@@ -31,11 +31,27 @@ function Writer:new(DiskObj, Handle)
 	
 end
 
+function Writer.EntrySorter(EntryA, EntryB)
+	
+	return EntryA:GetPath() < EntryB:GetPath()
+	
+end
+
 function Writer:WriteSignatures()
 	
-	local Entries = self.Disk:GetEntries()
+	local EntryMap = self.Disk:GetEntries()
+	local Entries = {}
 	
-	for Path, Entry in pairs(Entries) do
+	-- Get all entries and put them into an array
+	for Index, Entry in pairs(EntryMap) do
+		Entries[#Entries + 1] = Entry
+	end
+	
+	-- Sort the array by the entries path
+	table.sort(Entries, self.EntrySorter)
+	
+	-- Write every file and their content
+	for Index, Entry in pairs(Entries) do
 		
 		-- Write local header
 		Writers[0x04034b50](self, Entry)
@@ -44,7 +60,7 @@ function Writer:WriteSignatures()
 	
 	self:SetCentralDirectoryStart( self:Tell() )
 	
-	for Path, Entry in pairs(Entries) do
+	for Index, Entry in pairs(Entries) do
 		
 		-- Write central file header
 		Writers[0x02014b50](self, Entry)

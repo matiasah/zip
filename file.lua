@@ -18,8 +18,11 @@ File.Version					= 3
 File.VersionNeeded			= 20
 File.InternalAttributes		= 0
 File.ExternalAttributes		= 0
+File.CRC32						= 0
 File.Comment					= ""
 File.Folders					= {}
+File.CompressedSize			= 0
+File.UncompressedSize		= 0
 
 function File:new()
 	

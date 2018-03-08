@@ -72,7 +72,7 @@ function Archive:load(Handle)
 	
 	if Handle then
 		
-		local newDisk	= Disk:read(Handle)
+		local newDisk = Disk:read(Handle)
 		
 		if newDisk then
 			
@@ -169,6 +169,8 @@ function Archive:RemoveDisk(Index)
 end
 
 function Archive:GetDisk(Index)
+	
+	return self.Disk[Index]
 	
 end
 

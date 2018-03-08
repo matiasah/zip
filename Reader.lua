@@ -100,7 +100,15 @@ end
 
 function Reader:ReadByte()
 	
-	return self.Handle:read(1):byte()
+	local Byte = self.Handle:read(1)
+	
+	if Byte and #Byte > 0 then
+		
+		return Byte:byte()
+		
+	end
+	
+	return 0
 	
 end
 
@@ -112,7 +120,7 @@ end
 
 function Reader:ReadInt()
 	
-	return self:ReadByte() + 256 * ( self:ReadByte() + 256 * ( self:ReadByte() + self:ReadByte() * 256 ) )
+	return self:ReadByte() + self:ReadByte() * 256 + self:ReadByte() * 65536 + self:ReadByte() * 16777216
 	
 end
 

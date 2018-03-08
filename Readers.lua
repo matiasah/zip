@@ -55,6 +55,12 @@ Readers[0x02014b50] = function (self)
 		centralFileData.ExtraField = self:ReadString(ExtraFieldLength)
 		centralFileData.Comment = self:ReadString(CommentLength)
 		
+		if PathLength ~= #centralFileData.Path or ExtraFieldLength ~= #centralFileData.ExtraField or CommentLength ~= #centralFileData.Comment then
+			-- File corrupted
+			return nil
+			
+		end
+		
 		local Disk = self:GetDisk()
 		local File = Disk:GetEntry(centralFileData.Path)
 		
@@ -117,6 +123,12 @@ Readers[0x04034b50] = function (self)
 		newFile:SetPath( self:ReadString(PathLength) )
 		newFile:SetExtraField( self:ReadString(ExtraFieldLength) )
 		newFile:SetDataOffset( self:Tell() )
+		
+		if PathLength ~= #newFile:GetPath() or ExtraFieldLength ~= #newFile:GetExtraField() then
+			-- File corrupted
+			return nil
+			
+		end
 		
 		self:Seek( self:Tell() + newFile:GetCompressedSize() )
 		

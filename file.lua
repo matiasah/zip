@@ -233,90 +233,17 @@ end
 
 function File:GetModificationTimeValues()
 	
-	local ModificationTime = self.LastModificationTime
-	local Bits = {}
+	local Time = self.LastModificationTime
+	local Second = Time % 32
 	
-	do
-		
-		local Bit = 65536
-		
-		for i = 0, 15 do
-			
-			Bit = Bit * 0.5
-			
-			if ModificationTime >= Bit then
-				
-				ModificationTime = ModificationTime - Bit
-				
-				Bits[i] = true
-				
-			end
-			
-		end
-		
-	end
+	Time = ( Time - Second ) / 32
+	Second = Second * 2
 	
-	local Second = 0
+	local Minute = Time % 64
 	
-	do
-		
-		local Bit = 1
-		
-		for i = 0, 4 do
-			
-			if Bits[i] then
-				
-				Second = Second + Bit
-				
-			end
-			
-			Bit = Bit * 2
-			
-		end
-		
-		Second = Second * 2
-		
-	end
+	Time = ( Time - Minute ) / 64
 	
-	local Minute = 0
-	
-	do
-		
-		local Bit = 1
-		
-		for i = 5, 10 do
-			
-			if Bits[i] then
-				
-				Minute = Minute + Bit
-				
-			end
-			
-			Bit = Bit * 2
-			
-		end
-		
-	end
-	
-	local Hour = 0
-	
-	do
-		
-		local Bit = 1
-		
-		for i = 11, 15 do
-			
-			if Bits[i] then
-				
-				Hour = Hour + Bit
-				
-			end
-			
-			Bit = Bit * 2
-			
-		end
-		
-	end
+	local Hour = Time % 32
 	
 	return Hour, Minute, Second
 	
@@ -324,278 +251,27 @@ end
 
 function File:GetModificationDateValues()
 	
-	local ModificationDate = self.LastModificationDate
-	local Bits = {}
+	local Date = self.LastModificationDate
+	local Day = Date % 32
 	
-	do
-		
-		local Bit = 65536
-		
-		for i = 0, 15 do
-			
-			Bit = Bit * 0.5
-			
-			if ModificationDate >= Bit then
-				
-				ModificationDate = ModificationDate - Bit
-				
-				Bits[i] = true
-				
-			end
-			
-		end
-		
-	end
+	Date = ( Date - Day ) / 32
 	
-	local Day = 0
+	local Month = Date % 32
 	
-	do
-		
-		local Bit = 1
-		
-		for i = 0, 4 do
-			
-			if Bits[i] then
-				
-				Day = Day + Bit
-				
-			end
-			
-			Bit = Bit * 2
-			
-		end
-		
-	end
+	Date = ( Date - Month ) / 32
 	
-	local Month = 0
+	local Year = Date % 128
 	
-	do
-		
-		local Bit = 1
-		
-		for i = 5, 8 do
-			
-			if Bits[i] then
-				
-				Month = Month + Bit
-				
-			end
-			
-			Bit = Bit * 2
-			
-		end
-		
-	end
-	
-	local Year = 0
-	
-	do
-		
-		local Bit = 1
-		
-		for i = 9, 15 do
-			
-			if Bits[i] then
-				
-				Year = Year + Bit
-				
-			end
-			
-			Bit = Bit * 2
-			
-		end
-		
-	end
-	
-	return Day, Month, Year, Year + 1980
+	return Day, Month, Year + 1999
 	
 end
 
 function File:UpdateModificationTime(Number)
 	
-	local Time = os.date("*t", Number)
+	local Timestamp = os.date("*t", Number)
 	
-	do
-		--[[
-			File modification time	stored in standard MS-DOS format:
-			Bits 00-04: seconds divided by 2 
-			Bits 05-10: minute
-			Bits 11-15: hour
-		]]
-		local TimeBits = {}
-		
-		do
-			
-			local HalfSec = math.ceil( Time.sec * 0.5 )
-			local Bit = 32
-			
-			for i = 0, 4 do
-				
-				if HalfSec >= Bit then
-					
-					HalfSec = HalfSec - Bit
-					
-					TimeBits[i] = true
-					
-				end
-				
-				Bit = Bit * 0.5
-				
-			end
-			
-		end
-		
-		do
-			
-			local Minute = Time.min
-			local Bit = 64
-			
-			for i = 5, 10 do
-				
-				if Minute >= Bit then
-					
-					Minute = Minute - Bit
-					
-					TimeBits[i] = true
-					
-				end
-				
-				Bit = Bit * 0.5
-				
-			end
-			
-		end
-		
-		do
-			
-			local Hour = Time.hour
-			local Bit = 32
-			
-			for i = 11, 15 do
-				
-				if Hour >= Bit then
-					
-					Hour = Hour - Bit
-					
-					TimeBits[i] = true
-					
-				end
-				
-				Bit = Bit * 0.5
-				
-			end
-			
-		end
-		
-		local ModificationTime = 0
-		local Bit = 1
-		
-		for i = 0, 15 do
-			
-			if TimeBits[i] then
-				
-				ModificationTime = ModificationTime + Bit
-				
-			end
-			
-			Bit = Bit * 2
-			
-		end
-		
-		self:SetLastModificationTime(ModificationTime)
-		
-	end
-	
-	do
-		--[[
-			File modification date	stored in standard MS-DOS format:
-			Bits 00-04: day
-			Bits 05-08: month
-			Bits 09-15: years from 1980
-		]]
-		local DateBits = {}
-		
-		do
-			
-			local Day = Time.day
-			local Bit = 32
-			
-			for i = 0, 4 do
-				
-				if Day >= Bit then
-					
-					Day = Day - Bit
-					
-					DateBits[i] = true
-					
-				end
-				
-				Bit = Bit * 0.5
-				
-			end
-			
-		end
-		
-		do
-			
-			local Month = Time.month
-			local Bit = 16
-			
-			for i = 5, 8 do
-				
-				if Month >= Bit then
-					
-					Month = Month - Bit
-					
-					DateBits[i] = true
-					
-				end
-				
-				Bit = Bit * 0.5
-				
-			end
-			
-		end
-		
-		do
-			
-			local Year = Time.year - 1980
-			local Bit = 128
-			
-			for i = 9, 15 do
-				
-				if Year >= Bit then
-					
-					Year = Year - Bit
-					
-					DateBits[i] = true
-					
-				end
-				
-				Bit = Bit * 0.5
-				
-			end
-			
-		end
-		
-		local ModificationDate = 0
-		local Bit = 1
-		
-		for i = 0, 15 do
-			
-			if DateBits[i] then
-				
-				ModificationDate = ModificationDate + Bit
-				
-			end
-			
-			Bit = Bit * 2
-			
-		end
-		
-		self:SetLastModificationDate(ModificationDate)
-		
-	end
+	self:SetLastModificationTime( math.ceil( Timestamp.sec * 0.5 ) + ( Timestamp.min + Timestamp.hour * 64 ) * 32 )
+	self:SetLastModificationDate( Timestamp.day + ( Timestamp.month + ( Timestamp.year - 1999 ) * 32 ) * 32 )
 	
 end
 

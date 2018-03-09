@@ -159,7 +159,7 @@ end
 
 function Disk:PutEntry(Entry)
 	
-	if Entry then
+	if Entry and Entry:GetPath() then
 		
 		while Entry:GetPath():sub(1, 1) == "/" do
 			
@@ -169,9 +169,9 @@ function Disk:PutEntry(Entry)
 		
 		self.Entries[ Entry:GetPath() ] = Entry
 		
-		local SourceFolder = Entry:GetSource()
+		local SourceFolder = Entry:GetSource() .. "/"
 		
-		if #SourceFolder > 0 then
+		if #SourceFolder > 1 then
 			
 			if not self.Entries[ SourceFolder ] then
 				-- Folder does not exist, make one
@@ -187,7 +187,11 @@ function Disk:PutEntry(Entry)
 			
 		end
 		
+		return true
+		
 	end
+	
+	return false
 	
 end
 
@@ -208,6 +212,8 @@ function Disk:RemoveEntry(Path)
 		return Entry
 		
 	end
+	
+	return nil
 	
 end
 

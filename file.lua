@@ -47,6 +47,18 @@ function File:__tostring()
 	
 end
 
+function File:SetDisk(Disk)
+	
+	self.Disk = Disk
+	
+end
+
+function File:GetDisk()
+	
+	return self.Disk
+	
+end
+
 function File:SetDirectory(Directory)
 	
 	self.Directory = Directory
@@ -298,17 +310,37 @@ end
 
 function File:SetPath(Path)
 	
-	self.Path = Path
-	self.Folders = {}
-	
-	for String in self.Path:gmatch("([^/]+)") do
+	if self.Disk and self.Path then
 		
-		table.insert(self.Folders, String)
+		self.Disk:RemoveEntry( self.Path )
 		
 	end
 	
-	self.Name							= self.Folders[#self.Folders]
-	self.Folders[#self.Folders]	= nil
+	self.Path = Path
+	self.Folders = {}
+	
+	if self.Path then
+		
+		for String in self.Path:gmatch("([^/]+)") do
+			
+			table.insert(self.Folders, String)
+			
+		end
+		
+		self.Name							= self.Folders[#self.Folders]
+		self.Folders[#self.Folders]	= nil
+		
+		if self.Disk then
+			
+			self.Disk:PutEntry( self )
+			
+		end
+		
+	else
+		
+		self.Name = nil
+		
+	end
 	
 end
 
@@ -541,6 +573,17 @@ end
 
 function File:getSize()
 	
+	if self.File then
+		
+		local Current = self.File:seek("cur", 0)
+		local Size = self.File:seek("end", 0)
+		
+		self.File:seek("set", Current)
+		
+		return Size
+		
+	end
+	
 	return self.UncompressedSize
 	
 end
@@ -549,7 +592,7 @@ function File:isEOF()
 	
 	if self.File then
 		
-		return self.File:seek("cur", 0) >= self.UncompressedSize
+		return self.File:seek("cur", 0) >= self:getSize()
 		
 	end
 	
@@ -575,17 +618,17 @@ function File:lines()
 	
 end
 
-function File:read(Mode)
+function File:read(Size)
 	
 	if self.File then
 		
-		if Mode == "all" then
+		if Size == "all" or Size == nil then
 			
-			Mode = "*a"
+			Size = "*a"
 			
 		end
 		
-		return self.File:read(Mode)
+		return self.File:read(Size)
 		
 	end
 	

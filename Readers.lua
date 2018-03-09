@@ -89,6 +89,7 @@ Readers[0x04034b50] = function (self)
 	do
 		
 		newFile:SetReader(self)
+		newFile:SetDisk(self:GetDisk())
 		newFile:SetVersionNeeded( self:ReadShort() )
 		newFile:SetBitFlags( self:ReadBits(16) )
 		

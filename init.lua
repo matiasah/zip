@@ -4,8 +4,6 @@ local RequirePath = ...
 local zip = {}
 
 package.loaded["zip"]						=		zip
-package.preload["zip.zlib"]				=		assert(love.filesystem.load(Path.."/util/zlib.lua"))
-package.preload["zip.zlib_h"]				=		assert(love.filesystem.load(Path.."/util/zlib_h.lua"))
 package.preload["zip.crc32"]				=		assert(love.filesystem.load(Path.."/util/crc32.lua"))
 package.preload["zip.table"]				=		assert(love.filesystem.load(Path.."/util/table.lua"))
 

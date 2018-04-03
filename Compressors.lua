@@ -1,7 +1,5 @@
 module("zip.Compressors", package.seeall)
 
-zlib = require("zip.zlib")
-
 Object = require("zip.Object")
 
 Compressors = setmetatable( {}, Object )
@@ -38,7 +36,7 @@ end
 
 Compressors[8] = function (Data)
 	
-	local Success, CompressedData = pcall(zlib.deflate, Data, "", #Data, "deflate")
+	local Success, CompressedData = pcall(love.data.compress, "string", "deflate", Data)
 	
 	if Success then
 		
